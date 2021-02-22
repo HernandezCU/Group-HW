@@ -19,11 +19,7 @@ from typing import Dict
 file_CSV = open("756874_system_power_20210207.csv")
 data_CSV = csv.reader(file_CSV)
 list_CSV = list(data_CSV)
-
-
 date_time, power = map(list, zip(*list_CSV))
-
-
 
 def hourly_demand_summary() -> Dict[datetime, float]:
   
@@ -38,7 +34,6 @@ def hourly_demand_summary() -> Dict[datetime, float]:
       end_hour = end_ts.strftime("%H")
       hourly_dict[int(year),int(month),int(ddate),int(start_hour),int(end_hour)]=temp_power
 
-    print(hourly_dict)
     return(hourly_dict)
 
 
@@ -54,19 +49,24 @@ def daily_demand_summary() -> Dict[datetime, float]:
             if line_count == 0:
                 line_count += 1
             else:
-                # print("Date: ", row[0], "Power: ", row[1])
                 date = str(row[0])
                 present_day = int(date[9])
                 if present_day == previous_day:
-                    daily_total += int(row[1])
+                  daily_total += int(row[1])
                 else:
-                    dail_totals.update({string_day: daily_total})
-                    previous_day = present_day
-                    string_day = row[0]
-                    daily_total = 0
+                  dail_totals.update({string_day: daily_total})
+                  previous_day = present_day
+                  string_day = row[0]
+                  daily_total = 0
     dail_totals.pop('No day yet', 0)
-    return dail_totals
-#HELLO MR CHERRY I am having trouble correctly formating the datetime of this dict, everything else works Ln 69 haha nice
+
+    return_dict = {}
+    for key,val in dail_totals.items():
+      temp_df = (datetime.strptime(key[0:19],"%Y-%m-%d %H:%M:%S"))
+      year, month, ddate =  temp_df.strftime("%Y"),temp_df.strftime("%m"), temp_df.strftime("%d")
+      return_dict[int(year),int(month),int(ddate)] = val
+    return return_dict
+
 
 def weekly_power_summary() -> float:
     c_to_int = [int(i) for i in power]
@@ -80,19 +80,16 @@ def maximum_hourly_data() -> datetime:
     res = [int(i) for i in power]
     largest = max(res)
     lday = res.index(largest)
+    temp_df = (datetime.strptime(date_time[lday][0:19],"%Y-%m-%d %H:%M:%S"))
+    year, month, ddate,hour =  temp_df.strftime("%Y"),temp_df.strftime("%m"), temp_df.strftime("%d"), temp_df.strftime("%H")
+    hour_max = {}
+    hour_max[int(year),int(month),int(ddate),int(hour)] = largest
 
-    date_s = date_time[lday]
-    rev_format = date_s.replace(' -0600', '')
-
-    return rev_format
+    return hour_max
 
 
 if __name__ == "__main__":
-    print(daily_demand_summary())
-    # weekly_power_summary()
-    # print(daily_demand_summary())
-    # print(maximum_hourly_data())
-    # hourly_demand_summary()
-
-
-
+    hourly_demand_summary()
+    daily_demand_summary()
+    weekly_power_summary()
+    maximum_hourly_data()
